@@ -1,80 +1,122 @@
-# 🔧 tool-wear-prediction
+# Previsão e Interpretação do Desgaste de Ferramentas com IA Explicável
 
-Previsão de desgaste da ferramenta de corte utilizando Machine Learning e sinais de vibração.
+Repositório técnico associado à pesquisa de mestrado em Engenharia de Produção na UNIFEI sobre previsão do desgaste de ferramenta no torneamento do aço AISI 52100 endurecido, utilizando sinais de vibração, aprendizado de máquina e técnicas de IA explicável.
 
----
+O objetivo do projeto é organizar um pipeline reprodutível para treinamento, validação e interpretação de modelos de regressão aplicados à estimativa do desgaste da ferramenta.
 
-## 📌 Descrição
+## Contexto
 
-Este projeto aplica algoritmos de aprendizado de máquina (incluindo redes neurais e modelos ensemble) para prever a vida útil de ferramentas de corte com base em sinais de vibração capturados durante o processo de torneamento.
+A pesquisa investigou a relação entre sinais de vibração coletados durante o processo de torneamento e o desgaste progressivo da ferramenta de corte. O estudo combinou processamento de dados experimentais, modelos de aprendizado de máquina e interpretação por SHAP para apoiar a análise técnica do processo de usinagem.
 
----
+Pontos principais:
 
-## 🧠 Modelos Utilizados
+- 78 conjuntos experimentais analisados.
+- Aplicação em torneamento do aço AISI 52100 endurecido.
+- Uso de variáveis extraídas de sinais de vibração.
+- Modelos de regressão para previsão de desgaste.
+- IA explicável com SHAP para interpretação das variáveis mais relevantes.
+- Melhor desempenho experimental reportado com R² aproximado de 0,88.
 
-- Redes Neurais (Keras)
-- Support Vector Regressor (SVR)
-- Extra Trees Regressor
-- XGBoost Regressor
-- LightGBM Regressor
-- Gradient Boosting Regressor
-- Meta-modelo (Linear Regression com Stacking)
+## Tecnologias
 
----
+- Python
+- Pandas
+- NumPy
+- Scikit-Learn
+- TensorFlow
+- XGBoost
+- LightGBM
+- SHAP
+- Matplotlib
 
-## 🗂 Estrutura do Projeto
+## Estrutura
+
+```text
+tool-wear-prediction/
+|-- data/
+|   `-- README.md
+|-- src/
+|   |-- main.py
+|   |-- model_utils.py
+|   `-- preprocessing.py
+|-- .gitignore
+|-- requirements.txt
+`-- README.md
+```
+
+## Dados
+
+Os dados experimentais brutos não estão publicados neste repositório. Eles fazem parte da base utilizada na pesquisa acadêmica e devem ser tratados conforme as restrições de uso do estudo.
+
+Para executar o pipeline com uma base própria, utilize um arquivo CSV contendo:
+
+- uma coluna alvo com o desgaste medido da ferramenta;
+- colunas numéricas com variáveis extraídas dos sinais de vibração ou condições experimentais;
+- uma linha por experimento, ensaio ou janela consolidada de análise.
+
+O nome padrão da coluna alvo é `Desgaste`, mas ele pode ser alterado pela linha de comando.
+
+## Como executar
+
+Crie um ambiente virtual e instale as dependências:
 
 ```bash
-tool-wear-prediction/
-│
-├── src/                    # Código-fonte do projeto
-│   ├── main.py            # Pipeline principal de treinamento e avaliação
-│   ├── preprocessing.py   # Seleção de variáveis
-│   └── model_utils.py     # Criação dos modelos e meta-aprendiz
-│
-├── requirements.txt       # Dependências
-├── README.md              # Este arquivo
-└── .gitignore
-
-
-⚙️ Como Executar
-
-▶️ 1. Instale as dependências
-
 pip install -r requirements.txt
+```
 
-▶️ 2. Coloque seus dados
+Execute o pipeline informando o CSV experimental:
 
-Adicione seu arquivo de dados CSV (exemplo: meus_dados.csv) no diretório principal.
-No src/main.py, altere a linha:
+```bash
+python src/main.py --data data/raw/dados_experimentais.csv --target Desgaste
+```
 
-data = pd.read_csv('seu_arquivo.csv')
-para
-data = pd.read_csv('meus_dados.csv')
-Certifique-se de que as colunas estejam com os mesmos nomes usados no projeto.
+Também é possível informar explicitamente as variáveis de entrada:
 
-▶️ 3. Execute o projeto
+```bash
+python src/main.py ^
+  --data data/raw/dados_experimentais.csv ^
+  --target Desgaste ^
+  --features "rms,kurtosis,crest_factor,energia"
+```
 
-python src/main.py
-Ou use no Google Colab (recomendo criar um notebook com chamadas para os módulos .py).
+Para gerar uma análise SHAP do melhor modelo compatível:
 
-📈 Resultados Esperados
-O projeto irá:
+```bash
+python src/main.py --data data/raw/dados_experimentais.csv --target Desgaste --shap
+```
 
-Realizar validação cruzada com os modelos base
+## Saídas geradas
 
-Empilhar as previsões (stacking)
+Por padrão, os resultados são gravados em `reports/experiment/`:
 
-Calcular o R² final
+- `metrics.csv`: métricas por modelo.
+- `predictions.csv`: valores reais e previstos em validação cruzada.
+- `predicted_vs_real.png`: comparação visual do melhor modelo.
+- `shap_summary.png`: resumo SHAP, quando habilitado e compatível.
 
-Gerar gráficos comparativos com valores reais vs. previstos
+## Métricas utilizadas
 
-👨‍💻 Autor
-Lucas Ribeiro
-LinkedIn
+O pipeline calcula:
 
-## 📜 Licença
+- R²;
+- MAE;
+- RMSE.
 
-Este projeto está licenciado sob a Licença MIT - sinta-se livre para usar, modificar e distribuir com atribuição.
+Essas métricas permitem avaliar erro absoluto, erro quadrático e capacidade explicativa do modelo.
 
-Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
+## Observações técnicas
+
+O código foi estruturado para evitar caminhos fixos e edição manual de arquivos fonte. A seleção de variáveis pode ser feita automaticamente a partir de colunas numéricas ou informada pela linha de comando.
+
+Modelos opcionais como XGBoost e LightGBM são carregados apenas quando as dependências estão disponíveis no ambiente. O histórico experimental do projeto também contempla redes neurais com TensorFlow/Keras.
+
+## Autor
+
+Lucas Ribeiro Alves Costa  
+Cientista de Dados | Aprendizado de Máquina | Previsão e Otimização  
+LinkedIn: https://www.linkedin.com/in/lucas-ribeiro-datascientist/  
+Portfólio: https://lucasribeirodatascience.github.io/portfolio-lucas-ribeiro/
+
+## Licença
+
+Este projeto está licenciado sob a licença MIT. Consulte o arquivo `LICENSE` para mais detalhes.
